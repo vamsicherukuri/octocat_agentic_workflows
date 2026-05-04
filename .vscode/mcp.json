@@ -5,6 +5,12 @@
       "type": "promptString",
       "description": "GitHub Personal Access Token",
       "password": true
+    },
+    {
+      "id": "jira_api_token",
+      "type": "promptString",
+      "description": "Jira API Token (from id.atlassian.com/manage-profile/security/api-tokens)",
+      "password": true
     }
   ],
   "servers": {
@@ -52,6 +58,17 @@
         "mcp-server"
       ],
       "cwd": "${workspaceFolder}"
+    },
+    "jira": {
+      "command": "uvx",
+      "args": [
+        "mcp-atlassian"
+      ],
+      "env": {
+        "JIRA_URL": "https://agenticdemo.atlassian.net",
+        "JIRA_USERNAME": "vamsicherukuri@hotmail.com",
+        "JIRA_API_TOKEN": "${input:jira_api_token}"
+      }
     },
     "jenkins": {
       "command": "npx",
