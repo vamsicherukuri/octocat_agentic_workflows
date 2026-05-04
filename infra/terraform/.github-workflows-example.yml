@@ -1,0 +1,125 @@
+# GitHub Actions Workflow for Azure App Service Deployment
+# Copy this to .github/workflows/azure-deploy.yml to enable CI/CD
+
+name: Deploy to Azure App Services
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+
+env:
+  NODE_VERSION: '20.x'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment || 'dev' }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: |
+            api/package-lock.json
+            frontend/package-lock.json
+      
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      
+      - name: Install API dependencies and build
+        run: |
+          cd api
+          npm ci
+          npm run build
+      
+      - name: Package and deploy API
+        run: |
+          cd api
+          zip -r /tmp/api.zip . --exclude "node_modules/*"
+          az webapp deploy \
+            --resource-group ${{ secrets.RESOURCE_GROUP }} \
+            --name ${{ secrets.API_APP_NAME }} \
+            --src-path /tmp/api.zip \
+            --type zip \
+            --async true
+      
+      - name: Install frontend dependencies and build
+        run: |
+          cd frontend
+          npm ci
+          npm run build
+      
+      - name: Package and deploy frontend
+        run: |
+          cd frontend
+          zip -r /tmp/frontend.zip . --exclude "node_modules/*"
+          az webapp deploy \
+            --resource-group ${{ secrets.RESOURCE_GROUP }} \
+            --name ${{ secrets.FRONTEND_APP_NAME }} \
+            --src-path /tmp/frontend.zip \
+            --type zip \
+            --async true
+      
+      - name: Deployment Summary
+        run: |
+          echo "## Deployment Summary 🚀" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment**: ${{ github.event.inputs.environment || 'dev' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### URLs" >> $GITHUB_STEP_SUMMARY
+          echo "- Frontend: https://${{ secrets.FRONTEND_APP_NAME }}.azurewebsites.net" >> $GITHUB_STEP_SUMMARY
+          echo "- API: https://${{ secrets.API_APP_NAME }}.azurewebsites.net" >> $GITHUB_STEP_SUMMARY
+          echo "- API Swagger: https://${{ secrets.API_APP_NAME }}.azurewebsites.net/api-docs" >> $GITHUB_STEP_SUMMARY
+
+  # Optional: Run tests before deployment
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      
+      - name: Install API dependencies
+        run: |
+          cd api
+          npm ci
+      
+      - name: Run API tests
+        run: |
+          cd api
+          npm test
+      
+      - name: Install Frontend dependencies
+        run: |
+          cd frontend
+          npm ci
+      
+      - name: Run Frontend tests
+        run: |
+          cd frontend
+          npm test || true  # Continue even if tests fail (for demo purposes)

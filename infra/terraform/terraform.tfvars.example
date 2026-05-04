@@ -1,0 +1,17 @@
+# Example Terraform variables file
+# Copy this file to terraform.tfvars and customize for your deployment
+
+# Resource Group and Location
+resource_group_name = "rg-octocat-supply-dev"
+location           = "eastus"
+environment        = "dev"
+
+# Application Name (keep it short, max 20 chars)
+app_name = "octocat-supply"
+
+# App Service Plan SKU
+# Options: B1, B2, B3 (Basic), S1, S2, S3 (Standard), P1v2, P2v2, P3v2, P1v3, P2v3, P3v3 (Premium)
+app_service_plan_sku = "B1"
+
+# Always On (requires Basic tier or higher)
+always_on = true
