@@ -695,6 +695,17 @@ jobs:
             setupGlobals(core, github, context, exec, io);
             const { main } = require('/opt/gh-aw/actions/collect_ndjson_output.cjs');
             await main();
+      - name: Fail fast on no actionable output
+        env:
+          OUTPUT_TYPES: ${{ steps.collect_output.outputs.output_types }}
+        run: |
+          echo "Agent output types: $OUTPUT_TYPES"
+          if echo "$OUTPUT_TYPES" | grep -wqE 'noop|missing_data|missing_tool'; then
+            echo "::error::Agent produced no actionable output (output_types='$OUTPUT_TYPES')." \
+                 "This likely indicates a Jira connectivity or authentication failure." \
+                 "Verify that JIRA_URL, JIRA_USERNAME, and JIRA_API_TOKEN are correctly set in repository secrets."
+            exit 1
+          fi
       - name: Upload sanitized agent output
         if: always() && env.GH_AW_AGENT_OUTPUT
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
