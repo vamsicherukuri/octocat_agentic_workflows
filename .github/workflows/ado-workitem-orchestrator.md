@@ -10,15 +10,14 @@ description: |
 
 on:
   pull_request:
-    types: [opened]
+    types: [opened, labeled]
 
-activation:
-  if: github.event.pull_request.draft == true && contains(github.event.pull_request.labels.*.name, 'ado-workitem')
+if: "${{ github.event.pull_request.draft == true }}"
 
 permissions:
-  contents: write
-  issues: write
-  pull-requests: write
+  contents: read
+  issues: read
+  pull-requests: read
 
 network:
   allowed:
@@ -50,6 +49,8 @@ safe-outputs:
   create-pull-request:
     title-prefix: "[ADO] "
     draft: false
+  add-comment:
+    max: 3
 ---
 
 # ADO Work Item → Orchestrator → Pull Request
