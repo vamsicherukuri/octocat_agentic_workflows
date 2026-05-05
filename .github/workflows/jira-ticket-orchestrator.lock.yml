@@ -70,9 +70,9 @@ jobs:
     needs: activation
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       issues: read
-      pull-requests: read
+      pull-requests: write
     concurrency:
       group: "gh-aw-copilot-${{ github.workflow }}"
     env:

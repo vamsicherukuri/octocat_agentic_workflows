@@ -12,9 +12,9 @@ on:
     types: [jira-ticket-created]
 
 permissions:
-  contents: read
+  contents: write
   issues: read
-  pull-requests: read
+  pull-requests: write
 
 network:
   allowed:
