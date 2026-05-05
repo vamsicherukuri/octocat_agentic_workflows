@@ -81,8 +81,8 @@ extracted above. From the response, capture:
 - The most recent comments (use `jira_get_issue_comments` if useful)
 
 If the ticket cannot be retrieved (missing, permission denied, or MCP error),
-stop immediately and emit a single `create-pull-request` safe output whose body
-explains the failure — do not invent a brief.
+stop immediately and run `exit 1` in bash to fail the workflow. Do not emit
+any safe output and do not invent a brief.
 
 ## Step 2 — Run the Tech Lead Orchestrator
 

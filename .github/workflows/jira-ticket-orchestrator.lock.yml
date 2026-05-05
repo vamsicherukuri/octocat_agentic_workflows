@@ -1079,6 +1079,14 @@ jobs:
         env:
           GH_AW_AGENT_OUTPUT: ${{ env.GH_AW_AGENT_OUTPUT }}
           GH_AW_SAFE_OUTPUTS_HANDLER_CONFIG: "{\"create_pull_request\":{\"base_branch\":\"${{ github.ref_name }}\",\"draft\":true,\"max\":1,\"max_patch_size\":1024,\"title_prefix\":\"[JIRA] \"},\"missing_data\":{},\"missing_tool\":{}}"
+      - name: Fail if draft PR was not created
+        env:
+          PROCESSED_COUNT: ${{ steps.process_safe_outputs.outputs.processed_count }}
+        run: |
+          if [ "${PROCESSED_COUNT}" != "1" ]; then
+            echo "::error::Draft PR creation failed (processed_count=${PROCESSED_COUNT}). Check the Process Safe Outputs step for details."
+            exit 1
+          fi
         with:
           github-token: ${{ secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
           script: |
